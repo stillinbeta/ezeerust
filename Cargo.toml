@@ -1,0 +1,16 @@
+[package]
+name = "ezeerust"
+version = "0.1.0"
+authors = ["Ellie Frost <web@stillinbeta.com>"]
+edition = "2018"
+
+[[bin]]
+name = "ezeerust"
+path = "src/main.rs"
+
+[dependencies]
+yew = "0.6.0"
+
+[lib]
+name = "ezeerust"
+path = "src/lib.rs"
