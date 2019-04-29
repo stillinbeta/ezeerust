@@ -1,3 +1,3 @@
 fn main() {
-    yew::start_app::<ezeerust::Clicker>();
+    yew::start_app::<ezeerust::Model>();
 }

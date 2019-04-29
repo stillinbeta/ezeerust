@@ -1,94 +1,94 @@
 use yew::html;
 use yew::html::{Component, ComponentLink, Html, Renderable, ShouldRender};
-use yew::Callback;
 
-pub struct Clicker {
-    clicks: u64,
+use zeerust::ops::Op;
+use zeerust::z80::Z80;
+
+pub struct Model {
+    z80: Z80<'static>,
 }
 
-impl Component for Clicker {
-    type Message = u32;
-    type Properties = u64;
-
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Clicker { clicks: props }
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        self.clicks += msg as u64;
-        true
-    }
+pub enum CPUCommand {
+    Step,
+    Run,
 }
 
-impl Renderable<Clicker> for Clicker {
-    fn view(&self) -> Html<Self> {
-        html! {
-            <span class="clicks",>
-            { self.clicks }
-            </span>
-            <br />
-            <ClickButton: size={ 1 }, clicks= { self.clicks }, threshold=Some(0), callback=|i| i as u32, />
-            <ClickButton: size={ 5 }, clicks={ self.clicks }, callback=|i| i as u32, />
-            <ClickButton: size={ 10 }, clicks={ self.clicks }, callback=|i| i as u32, />
-        }
-    }
-}
+impl Component for Model {
+    type Message = CPUCommand;
+    type Properties = ();
 
-pub struct ClickButton {
-    increment: u8,
-    clicks: u64,
-    threshold: u8,
-    callback: Option<Callback<u8>>,
-}
-
-pub enum ButtonMessage {
-    Clicked,
-}
-
-#[derive(Default, PartialEq, Clone)]
-pub struct ButtonProperties {
-    size: u8,
-    clicks: u64,
-    threshold: Option<u8>,
-    callback: Option<Callback<u8>>,
-}
-
-impl Component for ClickButton {
-    type Message = ButtonMessage;
-    type Properties = ButtonProperties;
-
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
         Self {
-            increment: props.size,
-            clicks: props.clicks,
-            threshold: props.threshold.unwrap_or(props.size),
-            callback: props.callback,
+            z80: Z80::default(),
         }
-    }
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.clicks = props.clicks;
-        true
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            ButtonMessage::Clicked => {
-                if let Some(ref mut cb) = self.callback {
-                    cb.emit(self.increment)
-                }
-            }
+            CPUCommand::Step => self.z80.step(),
+            CPUCommand::Run => self.z80.run(),
         }
+        true
+    }
+}
+
+impl Renderable<Model> for Model {
+    fn view(&self) -> Html<Self> {
+        let opcode = self
+            .z80
+            .parse_opcode(self.z80.registers.get_pc() as usize)
+            .map(|(opc, _consumed)| opc);
+
+        html! {
+            <div>
+            <Opcode: opcode=opcode, />
+            </div>
+            <button onclick=|_| CPUCommand::Step,> { "Step" }  </button>
+            <button onclick=|_| CPUCommand::Run,> { "Run" } </button>
+        }
+    }
+}
+
+pub struct Opcode {
+    opcode: Option<Op>,
+}
+
+#[derive(PartialEq, Default, Clone)]
+pub struct OpcodeProperties {
+    opcode: Option<Op>,
+}
+
+impl Component for Opcode {
+    type Message = ();
+    type Properties = OpcodeProperties;
+
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self {
+            opcode: props.opcode,
+        }
+    }
+
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.opcode = props.opcode;
+        true
+    }
+
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         false
     }
 }
 
-impl Renderable<ClickButton> for ClickButton {
-    fn view(&self) -> Html<Self> {
-        html! {
-            <button disabled={ self.clicks < (self.threshold as u64)}, onclick = |_| ButtonMessage::Clicked,>
-            { format!("Add {}", self.increment) }
-            </button>
-        }
+impl Renderable<Opcode> for Opcode {
+    fn view(&self) -> Html<Opcode> {
+        html!(
+            <div> {
+                if let Some(opcode) = &self.opcode {
+                    format!("{:?}", opcode)
+                } else {
+                    "No instruction found".into()
+                }
+            }
+            </div>
+        )
     }
 }
