@@ -203,10 +203,11 @@ impl Renderable<Register8> for Register8 {
 #[derive(PartialEq, Clone, Default)]
 pub struct ProgramSelect {
     pub onchange: Option<Callback<&'static [u8]>>,
+    pub disabled: bool,
 }
 
 impl Component for ProgramSelect {
-    type Message = usize;
+    type Message = Option<usize>;
     type Properties = Self;
 
     fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
@@ -215,37 +216,44 @@ impl Component for ProgramSelect {
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         self.onchange = props.onchange;
+        self.disabled = props.disabled;
         true
     }
 
-    fn update(&mut self, msg: usize) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        let example = msg.and_then(|v| zeerust::examples::EXAMPLES.get(v));
+
         if let Some(ref mut callback) = self.onchange {
-            if let Some(example) = zeerust::examples::EXAMPLES.get(msg) {
-                callback.emit(example.binary)
+            if let Some(example) = example {
+                callback.emit(example.binary);
+                return true;
             }
         }
-        true
+        false
     }
 }
 
 fn program_option(opts: (usize, &str)) -> Html<ProgramSelect> {
     let (index, name) = opts;
+    let index = index + 1;
     html! {
-        <option value=index, >{ name }</option>
+        <option value=index + 1, >{ name }</option>
     }
 }
 
 impl Renderable<ProgramSelect> for ProgramSelect {
     fn view(&self) -> Html<ProgramSelect> {
         html! {
-            <select onchange=|evt| {
+            <select disabled=self.disabled, onchange=|evt| {
                 match evt {
                     ChangeData::Select(elem) => {
-                        elem.selected_index().map(|x| x as usize).unwrap()
+                        // First item will be zero, so it'll underflow.
+                        elem.selected_index().and_then(|x| (x as usize).checked_sub(1))
                     },
-                    _ => unimplemented!("reached unknown location"),
+                    _ => None
                 }
             }, >
+                <option>{ "Load a program" }</option>
                 { for zeerust::examples::EXAMPLES.iter().map(|e| e.name).enumerate().map(program_option) }
             </select>
         }

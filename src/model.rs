@@ -5,14 +5,15 @@ use zeerust::z80::{io::BufOutput, Z80};
 use crate::components::{Opcode, ProgramSelect, Registers};
 
 pub struct Model {
-    z80: Z80,
+    machine: Machine,
     show_memory: bool,
-    output: BufOutput,
+    loaded: bool,
 }
 
 pub enum CPUCommand {
     Step,
     Run,
+    Reset,
     ShowMemory(bool),
     LoadProgram(&'static [u8]),
 }
@@ -29,9 +30,24 @@ fn byte_view(byte: (usize, &u8)) -> Html<Model> {
     html! {<><a id={ &addr }, title={ &addr },>{ b }</a>{ sp }</>}
 }
 
+struct Machine {
+    z80: Z80,
+    output: BufOutput,
+}
+
+impl Machine {
+    fn new() -> Self {
+        let mut z80 = Z80::default();
+        let output = BufOutput::default();
+        z80.install_output(0, Box::new(output.clone()));
+
+        Machine { z80, output }
+    }
+}
+
 impl Model {
     fn output(&self) -> String {
-        let out = self.output.result();
+        let out = self.machine.output.result();
         match String::from_utf8(out.clone()) {
             Ok(s) => s,
             Err(_) => format!("{:x?}", out),
@@ -40,7 +56,7 @@ impl Model {
     fn memory_view(&self) -> Html<Self> {
         html! {
             <pre>
-            { for self.z80.memory.memory.iter().enumerate().map(byte_view) }
+            { for self.machine.z80.memory.memory.iter().enumerate().map(byte_view) }
             </pre>
         }
     }
@@ -72,23 +88,26 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        let mut z80 = Z80::default();
-        let output = BufOutput::default();
-        z80.install_output(0, Box::new(output.clone()));
-
         Self {
-            z80,
+            machine: Machine::new(),
             show_memory: false,
-            output,
+            loaded: false,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            CPUCommand::Step => self.z80.step(),
-            CPUCommand::Run => self.z80.run(),
+            CPUCommand::Step => self.machine.z80.step(),
+            CPUCommand::Run => self.machine.z80.run(),
             CPUCommand::ShowMemory(b) => self.show_memory = b,
-            CPUCommand::LoadProgram(program) => self.z80.load(program),
+            CPUCommand::LoadProgram(program) => {
+                self.machine.z80.load(program);
+                self.loaded = true
+            }
+            CPUCommand::Reset => {
+                self.machine = Machine::new();
+                self.loaded = false;
+            }
         }
         true
     }
@@ -96,25 +115,27 @@ impl Component for Model {
 
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
-        let opcode = self
-            .z80
-            .parse_opcode(self.z80.registers.get_pc() as usize)
+        let z80 = &self.machine.z80;
+        let opcode = z80
+            .parse_opcode(z80.registers.get_pc() as usize)
             .map(|(opc, _consumed)| opc);
 
         html! {
             <content>
                 <div>
+                <textarea disabled=true, >{ self.output() }</textarea>
+                </div>
+
+                <div>
                     <Opcode: opcode=opcode, />
                 </div>
                 <div>
-                    <Registers: registers=self.z80.registers.clone(), />
-                </div>
-                <div>
-                <textarea disabled=true, >{ self.output() }</textarea>
+                    <Registers: registers=z80.registers.clone(), />
                 </div>
                 <button onclick=|_| CPUCommand::Step,> { "Step" }  </button>
                 <button onclick=|_| CPUCommand::Run,> { "Run" } </button>
-                <ProgramSelect: onchange=|program| CPUCommand::LoadProgram(program), />
+                <button onclick=|_| CPUCommand::Reset,> { "Reset" } </button>
+                <ProgramSelect: disabled=self.loaded, onchange=|program| CPUCommand::LoadProgram(program), />
                 { self.memory_ui() }
             </content>
         }
