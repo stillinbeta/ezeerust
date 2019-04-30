@@ -2,6 +2,7 @@ use yew::html;
 use yew::html::{ChangeData, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::Callback;
 use zeerust::ops::{Op, Reg16, Reg8};
+use zeerust::z80::io::BufOutput;
 
 pub struct Opcode {
     opcode: Option<Op>,
@@ -10,6 +11,7 @@ pub struct Opcode {
 #[derive(PartialEq, Default, Clone)]
 pub struct OpcodeProperties {
     pub opcode: Option<Op>,
+    pub output: Option<&'static BufOutput>,
 }
 
 impl Component for Opcode {

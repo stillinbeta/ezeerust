@@ -1,12 +1,13 @@
 use yew::html;
 use yew::html::{Component, ComponentLink, Html, Renderable, ShouldRender};
-use zeerust::z80::Z80;
+use zeerust::z80::{io::BufOutput, Z80};
 
 use crate::components::{Opcode, ProgramSelect, Registers};
 
 pub struct Model {
-    z80: Z80<'static>,
+    z80: Z80,
     show_memory: bool,
+    output: BufOutput,
 }
 
 pub enum CPUCommand {
@@ -29,6 +30,13 @@ fn byte_view(byte: (usize, &u8)) -> Html<Model> {
 }
 
 impl Model {
+    fn output(&self) -> String {
+        let out = self.output.result();
+        match String::from_utf8(out.clone()) {
+            Ok(s) => s,
+            Err(_) => format!("{:x?}", out),
+        }
+    }
     fn memory_view(&self) -> Html<Self> {
         html! {
             <pre>
@@ -64,9 +72,14 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        let mut z80 = Z80::default();
+        let output = BufOutput::default();
+        z80.install_output(0, Box::new(output.clone()));
+
         Self {
-            z80: Z80::default(),
+            z80,
             show_memory: false,
+            output,
         }
     }
 
@@ -96,10 +109,13 @@ impl Renderable<Model> for Model {
                 <div>
                     <Registers: registers=self.z80.registers.clone(), />
                 </div>
+                <div>
+                <textarea disabled=true, >{ self.output() }</textarea>
+                </div>
                 <button onclick=|_| CPUCommand::Step,> { "Step" }  </button>
                 <button onclick=|_| CPUCommand::Run,> { "Run" } </button>
-                { self.memory_ui() }
                 <ProgramSelect: onchange=|program| CPUCommand::LoadProgram(program), />
+                { self.memory_ui() }
             </content>
         }
     }
