@@ -104,7 +104,7 @@ name = "ezeerust"
 version = "0.1.0"
 dependencies = [
  "yew 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "zeerust 0.1.1",
+ "zeerust 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -511,7 +511,8 @@ dependencies = [
 
 [[package]]
 name = "zeerust"
-version = "0.1.1"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "enum-display-derive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -583,3 +584,4 @@ dependencies = [
 "checksum winapi-x86_64-pc-windows-gnu 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 "checksum wincolor 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "eeb06499a3a4d44302791052df005d5232b927ed1a9658146d842165c4de7767"
 "checksum yew 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ca078a19e3459f7d73b135015477bc8cdcc92c3f4a058ae949f4d957a47dfd55"
+"checksum zeerust 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b1cc0fa29cf9da4a0b6943a4e2cf086380adec66f1e9729ae336d970e8025049"
