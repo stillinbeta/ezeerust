@@ -197,15 +197,19 @@ impl Renderable<Model> for Model {
                     <div id={ "output" },>
                         <textarea disabled=true, >{ self.output() }</textarea>
                     </div>
+                    <div id={ "instructions" },>
                         <div id={ "opcode" },>
                             <Opcode: opcode={ self.instruction() }, />
                         </div>
+                        <div class={"arrow-down"},></div>
                         <div id={ "destination" },>
                             { dst.map(|dst| self.location_view(dst)).unwrap_or_else(|| empty()) }
                         </div>
-                        // <div id={ "source" },>
-                        //     { src.map(|src| self.location_view(src)).unwrap_or_else(|| empty()) }
-                        // </div>
+                        <div class={"arrow-up"},></div>
+                        <div id={ "source" },>
+                            { src.map(|src| self.location_view(src)).unwrap_or_else(|| empty()) }
+                        </div>
+                    </div>
                     <div id={ "registers" }, >
                         <Registers: registers=z80.registers.clone(), />
                     </div>
