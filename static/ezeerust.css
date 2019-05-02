@@ -4,6 +4,26 @@ body {
     font-family: 'VT323', monospace;
     text-shadow: 0 0 3px #fff;
     font-size: 20pt;
+    height: 100vh;
+    background-image: linear-gradient(
+        110deg,
+        black,
+        black 80%,
+        red 80%,
+        red 82%,
+        #fffe03 82%,
+        #fffe03 84%,
+        #01ff01 84%,
+        #01ff01 86%,
+        #07fcff 86%,
+        #07fcff 88%,
+        black 88%
+    );
+
+    background-repeat: no-repeat;
+    background-size: 50%;
+    background-position: bottom right;
+
 }
 
 * {
@@ -24,9 +44,16 @@ code {
 #monitor {
     display: grid;
     background-color: #222;
-    grid-template-columns: 80% 20%;
+    grid-template-columns: 80% auto;
     grid-template-rows: 40% 60%;
-    border: 4px solid grey;
+    border: 8px solid grey;
+    border-radius: 8px;
+}
+
+@media only screen and (max-width: 600px) {
+    #monitor {
+        grid-template-columns: 50% auto;
+    }
 }
 
 #output {
@@ -116,17 +143,21 @@ code {
 }
 
 #buttons {
-    min-height: 150px;
-    padding: 1em;
+    float: left;
 }
 
 #buttons button, #buttons select {
     padding: 1em;
     margin: 1em;
+    background-color: #555;
+    color: white;
+    border-width: 3px;
+    border-style: outset;
+    border-color: #444;
 }
 
 #memory {
-    clear: both;
+    float: left;
 }
 
 #memory pre {
@@ -137,6 +168,15 @@ code {
     background-repeat: repeat;
     background-size: 4.5em 4.5em;
     text-shadow: 0;
+}
+
+#memory button {
+    margin: 1em;
+    padding: 1em;
+    background-color: red;
+    color: white;
+    border-color: #c00;
+    min-width: 10px;
 }
 
 /* #buttons { */
