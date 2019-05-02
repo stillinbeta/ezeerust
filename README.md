@@ -76,3 +76,9 @@ $ docker run -p 8080:80 ezeerust
 ```
 
 You can then visit [localhost:8080](http://localhost:8080) to see the site.
+
+## Future expansion ideas
+
+* Show the Assembly source of a file
+* Allow users to upload their own binaries
+* Graphics???
