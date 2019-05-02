@@ -37,7 +37,7 @@ impl Component for Opcode {
 impl Renderable<Opcode> for Opcode {
     fn view(&self) -> Html<Opcode> {
         html!(
-            <div> {
+            <div class={"opcode"},> {
                 if let Some(opcode) = &self.opcode {
                     format!("{:?}", opcode)
                 } else {
@@ -58,10 +58,18 @@ impl Registers {
     fn make_pair(&self, a: Reg8, b: Reg8, ab: Reg16) -> Html<Registers> {
         html! {
             <>
-            <Register16: label={ format!("{}", ab) }, value = self.registers.get_reg16(&ab), />
+            <tr colspan=2, >
+                <td>
+                    <Register16: label={ format!("{}", ab) }, value = self.registers.get_reg16(&ab), />
+                </td>
+            </tr>
             <tr>
-                <Register8: label = { format!("{}", a) }, value = self.registers.get_reg8(a), />
-                <Register8: label = { format!("{}", b) }, value = self.registers.get_reg8(b), />
+                <td>
+                    <Register8: label = { format!("{}", a) }, value = self.registers.get_reg8(a), />
+                </td>
+                <td>
+                    <Register8: label = { format!("{}", b) }, value = self.registers.get_reg8(b), />
+                </td>
             </tr>
             </>
         }
@@ -128,21 +136,30 @@ impl Component for RegisterPair {
     }
 }
 
-#[derive(Default, PartialEq, Clone)]
-struct Register16 {
+pub struct Register16 {
     pub label: String,
     pub value: u16,
 }
 
+#[derive(Default, PartialEq, Clone)]
+pub struct RegisterProps<T> {
+    pub label: String,
+    pub value: T,
+}
+
 impl Component for Register16 {
     type Message = ();
-    type Properties = Self;
+    type Properties = RegisterProps<u16>;
 
     fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        props
+        Self {
+            label: props.label,
+            value: props.value,
+        }
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.label = props.label;
         self.value = props.value;
         true
     }
@@ -155,23 +172,58 @@ impl Component for Register16 {
 impl Renderable<Register16> for Register16 {
     fn view(&self) -> Html<Register16> {
         html! {
-        <tr>
-            <td colspan="2",>
+            <div class={"register-16"},>
                 <strong> { &self.label }{ ":" } </strong>
                 <code> { format!("{:04x}", self.value) }</code>
-            </td>
-        </tr>
+            </div>
         }
     }
 }
 
-#[derive(Default, PartialEq, Clone)]
-struct Register8 {
+pub struct Register8 {
     pub label: String,
     pub value: u8,
 }
 
 impl Component for Register8 {
+    type Message = ();
+    type Properties = RegisterProps<u8>;
+
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self {
+            label: props.label,
+            value: props.value,
+        }
+    }
+
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.label = props.label;
+        self.value = props.value;
+        true
+    }
+
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        false
+    }
+}
+
+impl Renderable<Register8> for Register8 {
+    fn view(&self) -> Html<Register8> {
+        html! {
+                <div class={"register-8"},>
+                <strong>{ format!("{}:", self.label) }</strong>
+                <code>{ format!("{:02x}", self.value) }</code>
+                </div>
+        }
+    }
+}
+
+#[derive(Default, PartialEq, Clone)]
+pub struct Literal16 {
+    pub value: u16,
+}
+
+impl Component for Literal16 {
     type Message = ();
     type Properties = Self;
 
@@ -189,13 +241,45 @@ impl Component for Register8 {
     }
 }
 
-impl Renderable<Register8> for Register8 {
-    fn view(&self) -> Html<Register8> {
+impl Renderable<Literal16> for Literal16 {
+    fn view(&self) -> Html<Literal16> {
         html! {
-                <td>
-                <strong> { &self.label }{ ":" } </strong>
+            <>
+                <code> { format!("{:04x}", self.value) }</code>
+            </>
+        }
+    }
+}
+
+#[derive(Default, PartialEq, Clone)]
+pub struct Literal8 {
+    pub value: u8,
+}
+
+impl Component for Literal8 {
+    type Message = ();
+    type Properties = Self;
+
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        props
+    }
+
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.value = props.value;
+        true
+    }
+
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        false
+    }
+}
+
+impl Renderable<Literal8> for Literal8 {
+    fn view(&self) -> Html<Literal8> {
+        html! {
+            <>
                 <code> { format!("{:02x}", self.value) }</code>
-                </td>
+                </>
         }
     }
 }

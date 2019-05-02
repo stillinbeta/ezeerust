@@ -1,8 +1,13 @@
 use yew::html;
 use yew::html::{Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::virtual_dom::{VList, VNode};
+use zeerust::ops::{Location16, Location8, Op};
 use zeerust::z80::{io::BufOutput, Z80};
 
-use crate::components::{Opcode, ProgramSelect, Registers};
+use crate::components::{
+    Literal16, Literal8, Opcode, ProgramSelect, Register16, Register8, Registers,
+};
+use crate::util::{op_dst_src, Location};
 
 pub struct Model {
     machine: Machine,
@@ -81,6 +86,68 @@ impl Model {
             }
         }
     }
+
+    fn instruction(&self) -> Option<Op> {
+        let z80 = &self.machine.z80;
+        z80.parse_opcode(z80.registers.get_pc() as usize)
+            .map(|(opc, _consumed)| opc)
+    }
+
+    fn location_view(&self, loc: Location) -> Html<Self> {
+        let regs = &self.machine.z80.registers;
+        let memory = &self.machine.z80.memory.memory;
+        match loc {
+            Location::Loc8(loc) => match loc {
+                Location8::Reg(reg) => html! {
+                    <>
+                    <Register8: label={ format!("{}", reg) }, value=regs.get_reg8(reg), />
+                    </>
+                },
+                Location8::RegIndirect(reg) => {
+                    let reg_val = regs.get_reg16(&reg);
+                    html! {
+                        <>
+                        <Register16: label = { format!("{}", reg) }, value=reg_val, />
+                        <br />
+                        <Literal8: value = memory[reg_val as usize], />
+                        </>
+                    }
+                }
+
+                Location8::ImmediateIndirect(val) => {
+                    html! {
+                        <>
+                            <Literal16: value=val, />
+                            <br />
+                            <Literal8: value = memory[val as usize], />
+                        </>
+                    }
+                }
+                Location8::Immediate(val) => {
+                    html! {
+                        <>
+                            <Literal8: value = val, />
+                        </>
+                    }
+                }
+            },
+            Location::Loc16(loc) => match loc {
+                Location16::Reg(reg) => html! {
+                    <>
+                        <Register16: label = { format!("{}", reg) }, value=regs.get_reg16(&reg), />
+
+                    </>
+                },
+                Location16::ImmediateIndirect(_) => unimplemented!(),
+                Location16::Immediate(val) => html! {
+                    <>
+                        <>
+                        <Literal16: value=val, />
+                    </>
+                },
+            },
+        }
+    }
 }
 
 impl Component for Model {
@@ -113,24 +180,36 @@ impl Component for Model {
     }
 }
 
+fn empty<T>() -> Html<T>
+where
+    T: Component,
+{
+    VNode::from(VList::new())
+}
+
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
         let z80 = &self.machine.z80;
-        let opcode = z80
-            .parse_opcode(z80.registers.get_pc() as usize)
-            .map(|(opc, _consumed)| opc);
-
+        let (dst, src) = self.instruction().map(op_dst_src).unwrap_or((None, None));
         html! {
             <content>
                 <div>
-                <textarea disabled=true, >{ self.output() }</textarea>
+                    <textarea disabled=true, >{ self.output() }</textarea>
                 </div>
 
-                <div>
-                    <Opcode: opcode=opcode, />
+                <div class={ "instruction" },>
+                    <div class={ "opcode" }, >
+                        <Opcode: opcode={ self.instruction() }, />
+                    </div>
+                    <div class={ "destination" },>
+                        { dst.map(|dst| self.location_view(dst)).unwrap_or_else(|| empty()) }
+                    </div>
+                    <div class={ "source" },>
+                        { src.map(|src| self.location_view(src)).unwrap_or_else(|| empty()) }
+                    </div>
                 </div>
                 <div>
-                    <Registers: registers=z80.registers.clone(), />
+                <Registers: registers=z80.registers.clone(), />
                 </div>
                 <button onclick=|_| CPUCommand::Step,> { "Step" }  </button>
                 <button onclick=|_| CPUCommand::Run,> { "Run" } </button>
