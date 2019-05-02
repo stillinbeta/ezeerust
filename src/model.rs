@@ -203,11 +203,11 @@ impl Renderable<Model> for Model {
                         </div>
                         <div class={"arrow-down"},></div>
                         <div id={ "destination" },>
-                            { dst.map(|dst| self.location_view(dst)).unwrap_or_else(|| empty()) }
+                            { dst.map(|dst| self.location_view(dst)).unwrap_or_else(empty) }
                         </div>
                         <div class={"arrow-up"},></div>
                         <div id={ "source" },>
-                            { src.map(|src| self.location_view(src)).unwrap_or_else(|| empty()) }
+                            { src.map(|src| self.location_view(src)).unwrap_or_else(empty) }
                         </div>
                     </div>
                     <div id={ "registers" }, >
@@ -218,7 +218,7 @@ impl Renderable<Model> for Model {
                     <button onclick=|_| CPUCommand::Step,> { "Step" }  </button>
                     <button onclick=|_| CPUCommand::Run,> { "Run" } </button>
                     <button onclick=|_| CPUCommand::Reset,> { "Reset" } </button>
-                    <ProgramSelect: disabled=self.loaded, onchange=|program| CPUCommand::LoadProgram(program), />
+                    <ProgramSelect: disabled=self.loaded, onchange=CPUCommand::LoadProgram, />
                 </div>
                 <div id={ "memory" },>
                     { self.memory_ui() }

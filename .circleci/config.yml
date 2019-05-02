@@ -1,0 +1,72 @@
+version: 2
+jobs:
+  test:
+    docker:
+    - image: circleci/rust
+    steps:
+      - checkout
+      - restore_cache:
+          key: build-cache
+      - run:
+          name: Print version information
+          command: rustc --version; cargo --version
+      - run:
+          name: "install cargo web"
+          command: cargo install cargo-web
+      - run:
+          name: "Build all packages"
+          command: cargo web build --verbose
+      - run:
+          name: "Run clippy"
+          command: cargo clippy -- -D warnings
+      - save_cache:
+          key: build-cache
+          paths:
+            - "~/.cargo"
+            - "./target"
+  build:
+    docker:
+    - image: circleci/rust
+    steps:
+      - checkout
+      - restore_cache:
+          key: release-cache
+      - run:
+          name: "install cargo web"
+          command: cargo install cargo-web
+      - run:
+          name: "build wasm for deployment"
+          command: cargo web deploy
+      - setup_remote_docker
+      - run: "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
+      - run:
+          name: "build docker image"
+          command: "docker build -t ezeerust ."
+      - run:
+          name: "tag and push docker image"
+          command: |
+              TIME=$(date +%s)
+              docker tag ezeerust stillinbeta/ezeerust:$TIME
+              docker tag ezeerust stillinbeta/ezeerust:latest
+              docker push stillinbeta/ezeerust:$TIME
+              docker push stillinbeta/ezeerust:latest
+      - save_cache:
+          key: release-cache
+          paths:
+            - "~/.cargo"
+            - "./target"
+
+
+
+workflows:
+  version: 2
+  run:
+    jobs:
+      - test
+      - build:
+          requires:
+          - test
+          filters:
+            branches:
+              only: master
+    
