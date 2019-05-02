@@ -58,8 +58,8 @@ impl Registers {
     fn make_pair(&self, a: Reg8, b: Reg8, ab: Reg16) -> Html<Registers> {
         html! {
             <>
-            <tr colspan=2, >
-                <td>
+            <tr>
+                <td colspan=2,>
                     <Register16: label={ format!("{}", ab) }, value = self.registers.get_reg16(&ab), />
                 </td>
             </tr>
@@ -102,7 +102,9 @@ impl Renderable<Registers> for Registers {
               { self.make_pair(Reg8::B, Reg8::C, Reg16::BC,) }
               { self.make_pair(Reg8::D, Reg8::E, Reg16::DE) }
               { self.make_pair(Reg8::H, Reg8::L, Reg16::HL) }
-              <Register16: label={"PC"}, value = self.registers.get_pc(), />
+                <td colspan=2,>
+                    <Register16: label={"PC"}, value = self.registers.get_pc(), />
+                </td>
             </table>
         }
     }

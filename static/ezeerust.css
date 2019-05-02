@@ -1,0 +1,110 @@
+body {
+    color: white;
+    background-color: black;
+    font-family: 'VT323', monospace;
+    text-shadow: 0 0 3px #fff;
+    font-size: 20pt;
+}
+
+code {
+    font-family: 'VT323', monospace;
+    text-shadow: 0 0 3px #fff;
+}
+
+#monitor {
+    float: left;
+    width: 80%;
+    display: grid;
+    /* grid-template-columns: 25% 25% auto; */
+    /* grid-template-rows: 60% 10% auto; */
+    background-color: #222;
+    border: 4px solid grey;
+    justify-content: space-evenly ;
+    align-items: top;
+}
+
+#output {
+    grid-column: 1 / span 2; 
+    grid-row: 1;
+}
+
+#output textarea {
+    padding: 1em;
+    border: 2px solid white;
+}
+
+#opcode {
+    grid-column: 1 / span 2;
+    grid-row: 2;
+    padding: 1em;
+    border-bottom: 1px dashed white;
+}
+
+#instructions {
+    border: 1px solid white;
+    background-color: blue;
+}
+
+#destination{
+    grid-column: 1;
+    grid-row: 3;
+    padding: 1em;
+    background-color: green;
+}
+
+#source{
+    grid-column: 2;
+    grid-row: 3;
+    border-left: 1px dashed white;
+    padding: 1em;
+    background-color: blue;
+}
+
+#registers {
+    padding: 1em;
+    grid-column: 3;
+    grid-row: 1 / span 3;
+    text-align: center;
+}
+
+#registers table {
+    border-collapse: collapse;
+}
+
+#registers th, #registers td {
+    border: 1px solid white;
+    padding: .5em;
+}
+
+#buttons {
+    float: right;
+    width: 10%;
+    padding: 1em;
+}
+
+#buttons button, #buttons select {
+    display: block;
+    padding: 1em;
+    width: 100%;
+    margin: 1em;
+}
+
+#memory {
+    clear: both;
+}
+
+#memory pre {
+    color: black;
+    background-image:         linear-gradient(#f9f8e8 50%, #caefbf 50%);
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: 4.5em 4.5em;
+    text-shadow: 0;
+}
+
+/* #buttons { */
+/*     grid-column: 3; */
+/*     grid-row-start: 1; */
+/*     grid-row-end: 2; */
+/* } */
+

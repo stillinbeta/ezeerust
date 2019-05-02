@@ -193,29 +193,32 @@ impl Renderable<Model> for Model {
         let (dst, src) = self.instruction().map(op_dst_src).unwrap_or((None, None));
         html! {
             <content>
-                <div>
-                    <textarea disabled=true, >{ self.output() }</textarea>
-                </div>
-
-                <div class={ "instruction" },>
-                    <div class={ "opcode" }, >
-                        <Opcode: opcode={ self.instruction() }, />
+                <div id={ "monitor" },>
+                    <div id={ "output" },>
+                        <textarea disabled=true, >{ self.output() }</textarea>
                     </div>
-                    <div class={ "destination" },>
-                        { dst.map(|dst| self.location_view(dst)).unwrap_or_else(|| empty()) }
-                    </div>
-                    <div class={ "source" },>
-                        { src.map(|src| self.location_view(src)).unwrap_or_else(|| empty()) }
+                        <div id={ "opcode" },>
+                            <Opcode: opcode={ self.instruction() }, />
+                        </div>
+                        <div id={ "destination" },>
+                            { dst.map(|dst| self.location_view(dst)).unwrap_or_else(|| empty()) }
+                        </div>
+                        // <div id={ "source" },>
+                        //     { src.map(|src| self.location_view(src)).unwrap_or_else(|| empty()) }
+                        // </div>
+                    <div id={ "registers" }, >
+                        <Registers: registers=z80.registers.clone(), />
                     </div>
                 </div>
-                <div>
-                <Registers: registers=z80.registers.clone(), />
+                <div id={ "buttons" },>
+                    <button onclick=|_| CPUCommand::Step,> { "Step" }  </button>
+                    <button onclick=|_| CPUCommand::Run,> { "Run" } </button>
+                    <button onclick=|_| CPUCommand::Reset,> { "Reset" } </button>
+                    <ProgramSelect: disabled=self.loaded, onchange=|program| CPUCommand::LoadProgram(program), />
                 </div>
-                <button onclick=|_| CPUCommand::Step,> { "Step" }  </button>
-                <button onclick=|_| CPUCommand::Run,> { "Run" } </button>
-                <button onclick=|_| CPUCommand::Reset,> { "Reset" } </button>
-                <ProgramSelect: disabled=self.loaded, onchange=|program| CPUCommand::LoadProgram(program), />
-                { self.memory_ui() }
+                <div id={ "memory" },>
+                    { self.memory_ui() }
+                </div>
             </content>
         }
     }
