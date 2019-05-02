@@ -39,7 +39,7 @@ jobs:
           command: cargo install cargo-web
       - run:
           name: "build wasm for deployment"
-          command: cargo web deploy
+          command: cargo web deploy --release
       - setup_remote_docker
       - run: "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
       - run:
