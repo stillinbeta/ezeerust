@@ -157,6 +157,12 @@ code {
     border-color: #444;
 }
 
+#buttons button:disabled, #buttons select:disabled {
+    background-color: #BBB;
+    border-color: #AAA;
+    color: black;
+}
+
 #memory {
     float: left;
 }
