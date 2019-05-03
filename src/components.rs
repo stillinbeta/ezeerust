@@ -102,9 +102,16 @@ impl Renderable<Registers> for Registers {
               { self.make_pair(Reg8::B, Reg8::C, Reg16::BC,) }
               { self.make_pair(Reg8::D, Reg8::E, Reg16::DE) }
               { self.make_pair(Reg8::H, Reg8::L, Reg16::HL) }
+              <tr>
                 <td colspan=2,>
                     <Register16: label={"PC"}, value = self.registers.get_pc(), />
                 </td>
+              </tr >
+            <tr>
+                <td colspan=2,>
+                    <Register16: label={"SP"}, value = self.registers.get_reg16(&Reg16::SP), />
+                </td>
+            </tr >
             </table>
         }
     }

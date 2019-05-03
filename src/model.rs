@@ -97,6 +97,11 @@ impl Model {
         let regs = &self.machine.z80.registers;
         let memory = &self.machine.z80.memory.memory;
         match loc {
+            Location::ProgramCounter => html! {
+                <>
+                    <Register16: label={ "PC" }, value=regs.get_pc(), />
+                </>
+            },
             Location::Loc8(loc) => match loc {
                 Location8::Reg(reg) => html! {
                     <>
@@ -138,6 +143,19 @@ impl Model {
 
                     </>
                 },
+                Location16::RegIndirect(reg) => {
+                    let reg_val = regs.get_reg16(&reg);
+                    html! {
+                        <>
+                            <Register16: label = { format!("{}", reg) }, value=reg_val, />
+                            <br />
+                            <Literal16: value = u16::from_le_bytes([
+                                memory[reg_val as usize],
+                                memory[(reg_val + 1) as usize],
+                            ]), />
+                            </>
+                    }
+                }
                 Location16::ImmediateIndirect(_) => unimplemented!(),
                 Location16::Immediate(val) => html! {
                     <>

@@ -3,6 +3,7 @@ use zeerust::ops::{Location16, Location8, Op, Op::*, Reg16, Reg8};
 pub enum Location {
     Loc8(Location8),
     Loc16(Location16),
+    ProgramCounter,
 }
 
 /// Some 8-bit Location
@@ -15,9 +16,14 @@ fn sl16(loc: Location16) -> Option<Location> {
     Some(Location::Loc16(loc))
 }
 
+fn im16(loc: u16) -> Option<Location> {
+    Some(Location::Loc16(Location16::Immediate(loc)))
+}
+
 const ACC: Option<Location> = Some(Location::Loc8(Location8::Reg(Reg8::A)));
 const REG_B: Option<Location> = Some(Location::Loc8(Location8::Reg(Reg8::B)));
-const HL: Option<Location> = Some(Location::Loc8(Location8::RegIndirect(Reg16::HL)));
+const REG_HL: Option<Location> = Some(Location::Loc8(Location8::RegIndirect(Reg16::HL)));
+const REG_SP: Option<Location> = Some(Location::Loc16(Location16::RegIndirect(Reg16::SP)));
 
 /// Return the locations written to and read from by the given operation
 pub fn op_dst_src(op: Op) -> (Option<Location>, Option<Location>) {
@@ -52,7 +58,7 @@ pub fn op_dst_src(op: Op) -> (Option<Location>, Option<Location>) {
         SLA(loc) | SRL(loc) | SRA(loc) => (sl8(loc.clone()), sl8(loc)),
 
         // TODO: src and dst are both used here
-        RLD | RRD => (ACC, HL),
+        RLD | RRD => (ACC, REG_HL),
 
         BIT(_, loc) => (None, sl8(loc)), // TODO: flags
         SET(_, loc) | RES(_, loc) => (sl8(loc), None),
@@ -64,10 +70,11 @@ pub fn op_dst_src(op: Op) -> (Option<Location>, Option<Location>) {
         JR(_, _) => (None, None), // TODO: Immediate
 
         DJNZ(_) => (REG_B, REG_B),
-        CALL(_, _) | RET(_) => (None, None), // TODO: PC, SP
+        CALL(_, loc) => (Some(Location::ProgramCounter), im16(loc)), // TODO: sets SP as well
+        RET(_) => (Some(Location::ProgramCounter), REG_SP),
 
-        POP(loc) => (sl16(loc), None),
-        PUSH(loc) => (None, sl16(loc)),
+        POP(loc) => (sl16(loc), REG_SP),
+        PUSH(loc) => (REG_SP, sl16(loc)),
 
         LD8(dst, src) => (sl8(dst), sl8(src)),
         LD16(dst, src) => (sl16(dst), sl16(src)),

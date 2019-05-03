@@ -10,7 +10,7 @@ path = "src/main.rs"
 
 [dependencies]
 yew = "0.6.0"
-zeerust = "0.2.0"
+zeerust = "0.2.1"
 
 [lib]
 name = "ezeerust"
